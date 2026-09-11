@@ -1,6 +1,7 @@
 package com.pinwox.tvmazeapi.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ import com.pinwox.tvmazeapi.model.external.TvMazeShow;
 
 @Service 
 public class ShowService {
-    
+
     private final TvMazeClient tvMazeClient;
 
     public ShowService(TvMazeClient tvMazeClient) {
@@ -34,6 +35,10 @@ public class ShowService {
                 .summary(show.getSummary())
                 .genres(show.getGenres())
                 .build();
+    }
+
+    public Map<String, Object> getShowById(Long showId) {
+        return tvMazeClient.getShowById(showId);
     }
 
     private String resolveChannelName(TvMazeShow show) {
