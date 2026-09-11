@@ -1,9 +1,8 @@
 spring:
   application:
     name: tv-maze-api
-  data:
-    mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/tvmaze}
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://localhost:27017/tvmaze}
 
 server:
   port: ${SERVER_PORT:8080}
