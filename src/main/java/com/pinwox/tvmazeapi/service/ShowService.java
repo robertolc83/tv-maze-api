@@ -9,14 +9,17 @@ import org.springframework.stereotype.Service;
 import com.pinwox.tvmazeapi.model.dto.ShowSummaryDTO;
 import com.pinwox.tvmazeapi.model.external.TvMazeSearchResult;
 import com.pinwox.tvmazeapi.model.external.TvMazeShow;
+import com.pinwox.tvmazeapi.repository.ShowCacheRepository;
 
 @Service 
 public class ShowService {
 
     private final TvMazeClient tvMazeClient;
+    private final ShowCacheRepository showCacheRepository;
 
-    public ShowService(TvMazeClient tvMazeClient) {
+    public ShowService(TvMazeClient tvMazeClient, ShowCacheRepository showCacheRepository) {
         this.tvMazeClient = tvMazeClient;
+        this.showCacheRepository = showCacheRepository;
     }
 
     public List<ShowSummaryDTO> searchShows(String query) {
@@ -25,6 +28,11 @@ public class ShowService {
                 .filter(Objects::nonNull)
                 .map(this::toSummaryDTO)
                 .toList();
+    }
+
+    public Map<String, Object> getShowById(Long showId) {
+       return showCacheRepository.findById(showId)
+            .orElseGet(() -> fetchFromApiAndCache(showId));
     }
 
     private ShowSummaryDTO toSummaryDTO(TvMazeShow show) {
@@ -37,8 +45,10 @@ public class ShowService {
                 .build();
     }
 
-    public Map<String, Object> getShowById(Long showId) {
-        return tvMazeClient.getShowById(showId);
+    private Map<String, Object> fetchFromApiAndCache(Long showId) {
+        Map<String, Object> show = tvMazeClient.getShowById(showId);
+        showCacheRepository.save(showId, show);
+        return show;
     }
 
     private String resolveChannelName(TvMazeShow show) {
