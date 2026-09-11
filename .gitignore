@@ -1,0 +1,48 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+### VS Code ###
+.vscode/
+
+### Mac/OS ###
+.DS_Store
+
+### Windows ###
+Thumbs.db
+desktop.ini
+
+### Variables de entorno / credenciales ###
+.env
+.env.local
+application-local.yml
+application-local.properties
+src/main/resources/application-secrets.yml
+
+### Logs ###
+*.log
+logs/
+
+### Maven wrapper (opcional, si no versionas el wrapper) ###
+# .mvn/
+# mvnw
+# mvnw.cmd
