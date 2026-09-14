@@ -38,8 +38,10 @@ public class ShowService {
     }
 
     public Map<String, Object> getShowById(Long showId) {
-       return showCacheRepository.findById(showId)
-            .orElseGet(() -> fetchFromApiAndCache(showId));
+       Map<String, Object> show = showCacheRepository.findById(showId)
+                .orElseGet(() -> fetchFromApiAndCache(showId));
+        show.put("comments", findCommentsForShow(showId));
+        return show;
     }
 
     private ShowSummaryDTO toSummaryDTO(TvMazeShow show) {
