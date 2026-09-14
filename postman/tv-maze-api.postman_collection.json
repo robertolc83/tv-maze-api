@@ -1,0 +1,215 @@
+{
+  "info": {
+    "name": "TV Maze API - Pinwox",
+    "description": "Colección de pruebas para el examen técnico backend: API middleware sobre TVMaze con cache y comentarios en MongoDB Atlas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "show_id",
+      "value": "139",
+      "type": "string"
+    },
+    {
+      "key": "invalid_show_id",
+      "value": "999999999",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "A - Search shows",
+      "item": [
+        {
+          "name": "Search shows by query (con comentarios)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/search?search_query=girls",
+              "host": ["{{base_url}}"],
+              "path": ["api", "search"],
+              "query": [
+                {
+                  "key": "search_query",
+                  "value": "girls"
+                }
+              ]
+            },
+            "description": "Busca shows en TVMaze por texto libre. Devuelve id, name, channel (network o webChannel), summary, genres y el arreglo de comentarios guardados para cada show."
+          },
+          "response": []
+        },
+        {
+          "name": "Search shows - sin resultados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/search?search_query=xyzxyzxyznotfound",
+              "host": ["{{base_url}}"],
+              "path": ["api", "search"],
+              "query": [
+                {
+                  "key": "search_query",
+                  "value": "xyzxyzxyznotfound"
+                }
+              ]
+            },
+            "description": "Caso borde: búsqueda sin coincidencias. Debe devolver un arreglo vacío []."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B - Get show by ID",
+      "item": [
+        {
+          "name": "Get show - primera vez (consulta TVMaze y cachea)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shows/{{show_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shows", "{{show_id}}"]
+            },
+            "description": "Devuelve el objeto show completo de TVMaze, agregando el arreglo 'comments'. Si es la primera consulta de este ID, se guarda en cache (colección 'shows' en Mongo)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get show - segunda vez (desde cache de Mongo)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shows/{{show_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shows", "{{show_id}}"]
+            },
+            "description": "Misma consulta que la anterior. Debe responder más rápido, sirviendo el show desde el cache de Mongo en vez de llamar a TVMaze de nuevo. Los comentarios siempre se consultan en vivo, nunca desde el cache."
+          },
+          "response": []
+        },
+        {
+          "name": "Get show - ID inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shows/{{invalid_show_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shows", "{{invalid_show_id}}"]
+            },
+            "description": "Caso borde: show_id que no existe en TVMaze. Debe devolver 404 con un mensaje descriptivo, sin guardar nada en el cache."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "C - Comments",
+      "item": [
+        {
+          "name": "Create comment - válido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"showId\": {{show_id}},\n  \"comment\": \"Excelente serie\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "comments"]
+            },
+            "description": "Guarda un comentario y calificación asociados a un show. Respuesta esperada: 201 Created."
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - rating fuera de rango (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"showId\": {{show_id}},\n  \"comment\": \"Rating invalido\",\n  \"rating\": 8\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "comments"]
+            },
+            "description": "Caso borde: rating fuera del rango permitido (0-5). Debe devolver 400 Bad Request con el detalle del campo inválido."
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - comment vacío (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"showId\": {{show_id}},\n  \"comment\": \"\",\n  \"rating\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "comments"]
+            },
+            "description": "Caso borde: comentario vacío. Debe devolver 400 Bad Request."
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - showId faltante (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Falta el show id\",\n  \"rating\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "comments"]
+            },
+            "description": "Caso borde: falta el campo showId requerido. Debe devolver 400 Bad Request."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
