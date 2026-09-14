@@ -6,9 +6,11 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
+import com.pinwox.tvmazeapi.model.dto.CommentSummaryDTO;
 import com.pinwox.tvmazeapi.model.dto.ShowSummaryDTO;
 import com.pinwox.tvmazeapi.model.external.TvMazeSearchResult;
 import com.pinwox.tvmazeapi.model.external.TvMazeShow;
+import com.pinwox.tvmazeapi.repository.CommentRepository;
 import com.pinwox.tvmazeapi.repository.ShowCacheRepository;
 
 @Service 
@@ -16,10 +18,15 @@ public class ShowService {
 
     private final TvMazeClient tvMazeClient;
     private final ShowCacheRepository showCacheRepository;
+    private final CommentRepository commentRepository;
 
-    public ShowService(TvMazeClient tvMazeClient, ShowCacheRepository showCacheRepository) {
+
+    public ShowService(TvMazeClient tvMazeClient, 
+                        ShowCacheRepository showCacheRepository, 
+                        CommentRepository commentRepository) {
         this.tvMazeClient = tvMazeClient;
         this.showCacheRepository = showCacheRepository;
+        this.commentRepository = commentRepository;
     }
 
     public List<ShowSummaryDTO> searchShows(String query) {
@@ -42,7 +49,15 @@ public class ShowService {
                 .channel(resolveChannelName(show))
                 .summary(show.getSummary())
                 .genres(show.getGenres())
+                .comments(findCommentsForShow(show.getId()))
                 .build();
+    }
+
+    //TODO: Esto hace una consulta por cada show, se puede optimizar para que haga una sola consulta a la base de datos y traiga todos los comentarios de todos los shows en una sola consulta
+    private List<CommentSummaryDTO> findCommentsForShow(Long showId) {
+        return commentRepository.findByShowId(showId).stream()
+                .map(comment -> new CommentSummaryDTO(comment.getComment(), comment.getRating()))
+                .toList();
     }
 
     private Map<String, Object> fetchFromApiAndCache(Long showId) {
